@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MJ Tracker | Professional Tax Return Management System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --primary: #0a2540;
+  --primary-light: #1a3a5c;
+  --accent: #10b981;
+  --accent-dark: #059669;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --radius: 12px;
+  --sidebar-w: 260px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===================== LOGIN SCREEN ===================== */
+.login-screen {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0a2540 0%, #1a3a5c 40%, #0f4c75 70%, #10b981 100%);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.login-screen.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
+
+.login-container {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 50px 45px;
+  width: 100%; max-width: 440px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: loginSlideIn 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes loginSlideIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.login-logo {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 10px 30px rgba(10,37,64,0.3);
+  animation: logoPulse 2s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(10,37,64,0.3); }
+  50% { box-shadow: 0 10px 40px rgba(16,185,129,0.4); }
+}
+.login-logo i { font-size: 36px; color: white; }
+.login-title { font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+.login-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 35px; font-weight: 500; }
+
+.login-form-group { position: relative; margin-bottom: 20px; text-align: left; }
+.login-form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.login-input-wrapper { position: relative; display: flex; align-items: center; }
+.login-input-wrapper i.input-icon { position: absolute; left: 16px; color: var(--text-light); font-size: 16px; z-index: 2; }
+.login-input {
+  width: 100%; padding: 16px 50px 16px 48px;
+  border: 2px solid var(--border); border-radius: 12px;
+  font-size: 15px; font-family: inherit; background: #f8fafc;
+  transition: all 0.3s ease; color: var(--text);
+}
+.login-input:focus { outline: none; border-color: var(--accent); background: white; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
+.toggle-password { position: absolute; right: 16px; background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 16px; z-index: 2; }
+
+.login-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;
+}
+.login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(10,37,64,0.35); }
+.login-btn.loading { pointer-events: none; opacity: 0.8; }
+.login-btn .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.login-btn.loading .spinner { display: block; }
+.login-btn.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.login-error {
+  background: #fef2f2; color: #dc2626; padding: 12px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; margin-top: 16px;
+  display: none; align-items: center; gap: 8px;
+  animation: shakeError 0.5s ease; border: 1px solid #fecaca;
+}
+@keyframes shakeError { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+.login-footer { margin-top: 30px; font-size: 12px; color: var(--text-light); }
+.login-footer span { color: var(--accent); font-weight: 700; }
+.login-attempts { font-size: 11px; color: var(--text-light); margin-top: 12px; display: none; }
+
+.particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.particle { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 50%; animation: float linear infinite; }
+@keyframes float { 0%{transform:translateY(100vh) rotate(0deg); opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{transform:translateY(-10vh) rotate(720deg); opacity:0} }
+.login-logo.shake { animation: logoShake 0.6s ease; }
+@keyframes logoShake { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-10deg)} 40%{transform:rotate(10deg)} 60%{transform:rotate(-5deg)} 80%{transform:rotate(5deg)} }
+
+/* ===================== MAIN APP ===================== */
+.app-wrapper { display: none; height: 100vh; overflow: hidden; }
+.app-wrapper.visible { display: flex; }
+
+.sidebar {
+  width: var(--sidebar-w); background: var(--primary); color: white;
+  display: flex; flex-direction: column; transition: 0.3s; z-index: 100;
+}
+.sidebar-header { padding: 24px; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar-header i { color: var(--accent); }
+.nav-group { padding: 20px 0; flex: 1; }
+.nav-label { padding: 0 24px 10px; font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; font-weight: 700; }
+.nav-item { padding: 12px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: #cbd5e1; transition: 0.2s; font-weight: 500; font-size: 14px; }
+.nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+.nav-item.active { background: var(--accent); color: white; border-right: 4px solid white; }
+
+.main-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.top-bar { height: 64px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
+.search-box { position: relative; width: 400px; }
+.search-box input { width: 100%; padding: 10px 15px 10px 40px; border: 1px solid var(--border); border-radius: 8px; background: #f1f5f9; font-size: 14px; }
+.search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+
+.content { padding: 30px; overflow-y: auto; flex: 1; }
+.page { display: none; animation: fadeIn 0.4s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+.card-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+.stat-card { padding: 20px; background: white; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; transition: 0.3s; cursor: pointer; }
+.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+.stat-card .label { font-size: 13px; color: var(--text-light); font-weight: 600; }
+.stat-card .value { font-size: 28px; font-weight: 800; color: var(--primary); }
+.stat-card .trend { font-size: 12px; font-weight: 600; }
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; }
+.form-control { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; transition: 0.2s; }
+.form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+
+.btn { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-danger { background: var(--danger); color: white; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.table-container { overflow-x: auto; background: white; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th { padding: 15px; background: #f8fafc; color: var(--text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+td { padding: 15px; font-size: 14px; border-bottom: 1px solid var(--border); }
+tr:hover { background: #fdfdfd; }
+
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.badge-new { background: #dbeafe; color: #1e40af; }
+.badge-started { background: #fef3c7; color: #92400e; }
+.badge-completed { background: #d1fae5; color: #065f46; }
+.badge-filed { background: #ede9fe; color: #5b21b6; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+.modal { background: white; padding: 32px; border-radius: var(--radius); width: 100%; max-width: 600px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; animation: modalIn 0.3s ease; }
+@keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.modal-header h3 { margin: 0; font-size: 20px; font-weight: 700; color: var(--primary); }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--text-light); cursor: pointer; }
+.modal-close:hover { color: var(--danger); }
+
+.filter-row th { background: #f1f5f9; padding: 8px; border-bottom: 1px solid var(--border); }
+.filter-input { width: 100%; padding: 6px 8px !important; font-size: 12px !important; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text); font-family: inherit; }
+.filter-input:focus { border-color: var(--accent); outline: none; }
+
+.chart-box { height: 300px; width: 100%; }
+.active-tab { background: var(--primary) !important; color: white !important; }
+
+/* MONTH FILTER BAR */
+.month-filter-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 16px 20px; background: var(--primary); border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+.month-btn {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+  background: transparent; color: rgba(255,255,255,0.7); cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: all 0.2s;
+}
+.month-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+.month-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.month-filter-label { color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-right: 5px; }
+
+/* MONTH SUMMARY CARDS */
+.month-summary-banner {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+  color: white; display: flex; align-items: center; justify-content: space-between;
+}
+.month-summary-title { font-size: 24px; font-weight: 800; }
+.month-summary-sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+.month-summary-stats { display: flex; gap: 30px; }
+.month-stat { text-align: center; }
+.month-stat .ms-val { font-size: 28px; font-weight: 800; }
+.month-stat .ms-label { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 12px 24px; border-radius: 8px; box-shadow: var(--shadow); display: none; animation: slideUp 0.3s ease; z-index: 10000; }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+@media (max-width: 768px) {
+  .login-container { margin: 20px; padding: 35px 30px; }
+  .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .search-box { width: 200px; }
+  .month-filter-bar { padding: 12px; }
+  .month-summary-banner { flex-direction: column; gap: 20px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ======================== LOGIN SCREEN ======================== -->
+<div class="login-screen" id="loginScreen">
+  <div class="particles" id="particles"></div>
+  <div class="login-container">
+    <div class="login-logo" id="loginLogo"><i class="fas fa-shield-halved"></i></div>
+    <h1 class="login-title">MJ Tracker</h1>
+    <p class="login-subtitle">Professional Tax Return Management System</p>
+    <form onsubmit="handleLogin(event)">
+      <div class="login-form-group">
+        <label for="loginPassword">System Password</label>
+        <div class="login-input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="loginPassword" class="login-input" placeholder="Enter your password" autocomplete="off" autofocus>
+          <button type="button" class="toggle-password" onclick="togglePasswordVisibility()"><i class="fas fa-eye" id="eyeIcon"></i></button>
+        </div>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">
+        <div class="spinner"></div>
+        <span class="btn-text"><i class="fas fa-arrow-right-to-bracket"></i> Unlock System</span>
+      </button>
+    </form>
+    <div class="login-error" id="loginError"><i class="fas fa-exclamation-triangle"></i><span id="errorText">Incorrect password.</span></div>
+    <div class="login-attempts" id="loginAttempts">Attempts remaining: <strong id="attemptsCount">5</strong></div>
+    <div class="login-footer">Secured with <span>256-bit encryption</span> &bull; v3.0</div>
+  </div>
+</div>
+
+<!-- ======================== MAIN APP ======================== -->
+<div class="app-wrapper" id="appWrapper">
+  <div class="sidebar">
+    <div class="sidebar-header"><i class="fas fa-shield-halved"></i> MJ Tracker</div>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="navigate('dashboard', this)"><i class="fas fa-th-large"></i> Dashboard</div>
+      <div class="nav-label" style="margin-top:20px">Operations</div>
+      <div class="nav-item" onclick="navigate('tracker', this)"><i class="fas fa-folder-open"></i> Return Tracker</div>
+      <div class="nav-label" style="margin-top:20px">Intelligence</div>
+      <div class="nav-item" onclick="navigate('analysis', this)"><i class="fas fa-chart-line"></i> Monthly Analysis</div>
+      <div class="nav-label" style="margin-top:20px">System</div>
+      <div class="nav-item" onclick="exportData()"><i class="fas fa-file-export"></i> Export to Excel</div>
+      <div class="nav-item" onclick="backupSystem()"><i class="fas fa-database"></i> Backup System</div>
+      <div class="nav-item" onclick="document.getElementById('restoreFile').click()"><i class="fas fa-upload"></i> Restore System</div>
+      <input type="file" id="restoreFile" style="display:none" onchange="restoreSystem(this)">
+      <div class="nav-item" onclick="navigate('settings', this)"><i class="fas fa-gear"></i> Settings</div>
+      <div class="nav-item" onclick="clearAllData()"><i class="fas fa-trash-can"></i> Reset System</div>
+      <div class="nav-item" onclick="logoutSystem()" style="margin-top:10px; color:#f87171;"><i class="fas fa-right-from-bracket"></i> Logout</div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="top-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearch" placeholder="Search clients, returns..." oninput="handleSearch(this.value)">
+      </div>
+      <div style="display:flex; align-items:center; gap:15px">
+        <span id="currentDate" style="font-size:14px; color:var(--text-light); font-weight:500"></span>
+        <div style="width:35px; height:35px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; cursor:pointer" onclick="logoutSystem()" title="Logout">MJ</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ========== DASHBOARD ========== -->
+      <section id="page-dashboard" class="page active">
+        <div class="card-title"><i class="fas fa-th-large"></i> Executive Summary</div>
+
+        <!-- Month Filter Bar on Dashboard -->
+        <div class="month-filter-bar" id="dashMonthBar"></div>
+
+        <!-- Month Summary Banner -->
+        <div class="month-summary-banner" id="dashMonthBanner"></div>
+
+        <div class="grid grid-5" id="dashStats"></div>
+
+        <div class="grid grid-2" style="margin-top:24px">
+          <div class="card">
+            <div class="card-title"><i class="fas fa-clock"></i> Recent Activity</div>
+            <div id="recentActivityList" style="display:flex; flex-direction:column; gap:12px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Entity Distribution</div>
+            <div class="chart-box"><canvas id="dashChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Monthly Returns Table on Dashboard -->
+        <div class="card" style="margin-top:4px">
+          <div class="card-title"><i class="fas fa-list"></i> Returns for Selected Month</div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>#</th><th>Return Name</th><th>Client</th><th>Tax Year</th><th>Return Date</th><th>Entity</th><th>Description</th><th>Status</th></tr></thead>
+              <tbody id="dashMonthTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== TRACKER ========== -->
+      <section id="page-tracker" class="page">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+          <div class="card-title"><i class="fas fa-folder-open"></i> Return Management</div>
+          <button class="btn btn-accent" onclick="openReturnModal()"><i class="fas fa-plus"></i> New Return</button>
+        </div>
+
+        <!-- Month Filter on Tracker -->
+        <div class="month-filter-bar" id="trackerMonthBar"></div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Return Name</th><th>Client Name</th><th>Tax Year</th><th>Return Date</th><th>Entity</th><th>Description</th><th>Status</th><th>Action</th></tr>
+                <tr class="filter-row">
+                  <th></th>
+                  <th><input type="text" id="f_name" class="form-control filter-input" placeholder="Filter..." oninput="renderTracker()"></th>
+                  <th><input type="text" id="f_client" class="form-control filter-input" placeholder="Filter..." oninput="renderTracker()"></th>
+                  <th><select id="f_year" class="form-control filter-input" onchange="renderTracker()"><option value="">All</option><option>2024</option><option>2025</option><option>2026</option></select></th>
+                  <th><div style="display:flex;gap:4px"><input type="date" id="f_date_from" class="form-control filter-input" onchange="renderTracker()" title="From"><input type="date" id="f_date_to" class="form-control filter-input" onchange="renderTracker()" title="To"></div></th>
+                  <th><select id="f_entity" class="form-control filter-input" onchange="renderTracker()"><option value="">All</option><option>1040 - Individual</option><option>1120S - S Corp</option><option>1065 - Partnership</option><option>1120 - C Corp</option><option>Other</option></select></th>
+                  <th><input type="text" id="f_desc" class="form-control filter-input" placeholder="Filter..." oninput="renderTracker()"></th>
+                  <th><select id="f_status" class="form-control filter-input" onchange="renderTracker()"><option value="">All</option><option>New</option><option>Started</option><option>Completed</option><option>Filed</option></select></th>
+                  <th><button onclick="clearTrackerFilters()" class="btn btn-outline" style="padding:4px 8px; font-size:11px"><i class="fas fa-redo"></i></button></th>
+                </tr>
+              </thead>
+              <tbody id="trackerTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== ANALYSIS ========== -->
+      <section id="page-analysis" class="page">
+        <div class="card-title"><i class="fas fa-chart-line"></i> Monthly Intelligence Report</div>
+
+        <div class="month-filter-bar" id="analysisMonthBar"></div>
+        <div class="month-summary-banner" id="analysisMonthBanner"></div>
+
+        <div class="grid grid-2" style="margin-top:24px">
+          <div class="card">
+            <div class="card-title"><i class="fas fa-users"></i> Returns by Client</div>
+            <div class="table-container">
+              <table><thead><tr><th>Client Name</th><th>Returns</th><th>% of Total</th></tr></thead><tbody id="anaClientTable"></tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="fas fa-layer-group"></i> Returns by Entity Type</div>
+            <div class="table-container">
+              <table><thead><tr><th>Entity Type</th><th>Count</th><th>% of Total</th></tr></thead><tbody id="anaTypeTable"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:24px">
+          <div class="card">
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Monthly Trend (All Time)</div>
+            <div class="chart-box"><canvas id="anaTrendChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Entity Breakdown</div>
+            <div class="chart-box"><canvas id="anaEntityChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card-title"><i class="fas fa-list-check"></i> Detailed Returns for Selected Month</div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>#</th><th>Return Name</th><th>Client</th><th>Tax Year</th><th>Return Date</th><th>Entity</th><th>Description</th><th>Status</th></tr></thead>
+              <tbody id="anaDetailTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SETTINGS ========== -->
+      <section id="page-settings" class="page">
+        <div class="card-title"><i class="fas fa-gear"></i> System Settings</div>
+        <div class="card" style="max-width: 600px">
+          <div class="form-group" style="margin-bottom: 20px">
+            <label>Primary Theme Color</label>
+            <div style="display:flex; gap:15px; align-items:center">
+              <input type="color" id="set_primary" class="form-control" style="width:60px; padding:2px" onchange="updateTheme(this.value)">
+              <span id="primary_hex" style="font-family:monospace; font-weight:600">#0a2540</span>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 20px">
+            <label>Accent Theme Color</label>
+            <div style="display:flex; gap:15px; align-items:center">
+              <input type="color" id="set_accent" class="form-control" style="width:60px; padding:2px" onchange="updateAccent(this.value)">
+              <span id="accent_hex" style="font-family:monospace; font-weight:600">#10b981</span>
+            </div>
+          </div>
+          <div class="card-title" style="font-size:14px; margin-top:30px">About MJ Tracker v3.0</div>
+          <p style="font-size:13px; color:var(--text-light); line-height:1.6">
+            Professional Tax Return Management System with month-wise filtering, intelligent analysis, and full data export.
+            All data is stored locally in your browser. Use Backup/Restore for data safety.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== RETURN MODAL ======================== -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="returnModalTitle">Add New Tax Return</h3>
+      <button class="modal-close" onclick="closeModal('returnModal')">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Return Name / Reference</label><input type="text" id="r_name" class="form-control" placeholder="e.g. Smith Individual 2025"></div>
+      <div class="form-group"><label>Client Name</label><input type="text" id="r_client" class="form-control" placeholder="e.g. Adriana"></div>
+      <div class="form-group"><label>Tax Year</label><select id="r_year" class="form-control"><option>2024</option><option>2025</option><option>2026</option></select></div>
+      <div class="form-group"><label>Return Date</label><input type="date" id="r_date" class="form-control"></div>
+      <div class="form-group"><label>Entity Type</label><select id="r_entity" class="form-control"><option>1040 - Individual</option><option>1120S - S Corp</option><option>1065 - Partnership</option><option>1120 - C Corp</option><option>Other</option></select></div>
+      <div class="form-group"><label>Status</label><select id="r_status" class="form-control"><option value="New">New</option><option value="Started">Started</option><option value="Completed">Completed</option><option value="Filed">Filed</option></select></div>
+      <div class="form-group" style="grid-column: span 2"><label>Description</label><input type="text" id="r_desc" class="form-control" placeholder="Work details..."></div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px">
+      <button class="btn btn-outline" onclick="closeModal('returnModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveReturn()"><i class="fas fa-check"></i> Save Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Message</div>
+
+<script>
+/* ======================== LOGIN ======================== */
+const SYSTEM_PASSWORD = "Motubha@2526";
+let loginAttempts = 5, isLocked = false;
+
+function createParticles() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random()*100+'%';
+    p.style.width = p.style.height = (Math.random()*6+3)+'px';
+    p.style.animationDuration = (Math.random()*15+10)+'s';
+    p.style.animationDelay = (Math.random()*10)+'s';
+    c.appendChild(p);
+  }
+}
+
+function togglePasswordVisibility() {
+  const inp = document.getElementById('loginPassword');
+  const ico = document.getElementById('eyeIcon');
+  if(inp.type==='password'){inp.type='text';ico.className='fas fa-eye-slash';}
+  else{inp.type='password';ico.className='fas fa-eye';}
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  if(isLocked) return showLoginError('System locked. Refresh to retry.');
+  const pw = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  if(!pw) return showLoginError('Please enter your password.');
+  btn.classList.add('loading');
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    if(pw === SYSTEM_PASSWORD) { loginSuccess(); }
+    else {
+      loginAttempts--;
+      const logo = document.getElementById('loginLogo');
+      logo.classList.remove('shake'); void logo.offsetWidth; logo.classList.add('shake');
+      if(loginAttempts<=0) { isLocked=true; showLoginError('Too many attempts. System locked.'); document.getElementById('loginPassword').disabled=true; btn.disabled=true; btn.style.opacity='0.5'; }
+      else { showLoginError(`Incorrect password. ${loginAttempts} attempt${loginAttempts!==1?'s':''} remaining.`); document.getElementById('loginAttempts').style.display='block'; document.getElementById('attemptsCount').textContent=loginAttempts; }
+      document.getElementById('loginPassword').value=''; document.getElementById('loginPassword').focus();
+    }
+  }, 800);
+}
+
+function showLoginError(msg) { const e=document.getElementById('loginError'); document.getElementById('errorText').textContent=msg; e.style.display='flex'; }
+function loginSuccess() {
+  sessionStorage.setItem('mj_authenticated','true');
+  const ls=document.getElementById('loginScreen');
+  ls.classList.add('hidden');
+  setTimeout(()=>{ ls.style.display='none'; document.getElementById('appWrapper').classList.add('visible'); initApp(); }, 600);
+}
+function logoutSystem() {
+  if(!confirm('Logout?')) return;
+  sessionStorage.removeItem('mj_authenticated');
+  document.getElementById('appWrapper').classList.remove('visible');
+  const ls=document.getElementById('loginScreen');
+  ls.style.display='flex'; ls.classList.remove('hidden');
+  document.getElementById('loginPassword').value=''; document.getElementById('loginPassword').disabled=false;
+  document.getElementById('loginBtn').disabled=false; document.getElementById('loginBtn').style.opacity='1';
+  document.getElementById('loginError').style.display='none'; document.getElementById('loginAttempts').style.display='none';
+  loginAttempts=5; isLocked=false;
+}
+function checkSession() {
+  if(sessionStorage.getItem('mj_authenticated')==='true') { document.getElementById('loginScreen').style.display='none'; document.getElementById('appWrapper').classList.add('visible'); initApp(); }
+  else { createParticles(); document.getElementById('loginPassword').focus(); }
+}
+
+/* ======================== STATE ======================== */
+let state = {
+  returns: JSON.parse(localStorage.getItem('mj_pro_returns') || '[]'),
+  activities: JSON.parse(localStorage.getItem('mj_pro_activities') || '[]')
+};
+let editingReturnId = null;
+
+// Active month filter per page (stored as "YYYY-MM" or "all")
+let activeMonthFilter = {
+  dashboard: 'all',
+  tracker: 'all',
+  analysis: 'all'
+};
+
+function save() {
+  localStorage.setItem('mj_pro_returns', JSON.stringify(state.returns));
+  localStorage.setItem('mj_pro_activities', JSON.stringify(state.activities));
+}
+
+/* ======================== HELPERS ======================== */
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getReturnMonth(r) {
+  // Use returnDate field to determine which month a return belongs to
+  if(r.returnDate) return r.returnDate.substring(0,7); // "YYYY-MM"
+  return null;
+}
+
+function getMonthLabel(ym) {
+  if(!ym) return '';
+  const [y, m] = ym.split('-');
+  return `${MONTH_NAMES[parseInt(m)-1]} ${y}`;
+}
+
+function getShortMonthLabel(ym) {
+  if(!ym) return '';
+  const [y, m] = ym.split('-');
+  return `${MONTH_NAMES[parseInt(m)-1].substring(0,3)} ${y}`;
+}
+
+function getAllMonthsPresent() {
+  const months = new Set();
+  state.returns.forEach(r => {
+    const m = getReturnMonth(r);
+    if(m) months.add(m);
+  });
+  return [...months].sort().reverse();
+}
+
+function getFilteredReturns(monthKey) {
+  if(monthKey === 'all') return state.returns;
+  return state.returns.filter(r => getReturnMonth(r) === monthKey);
+}
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
+function logActivity(text) { state.activities.unshift({text,time:new Date().toLocaleString()}); if(state.activities.length>15) state.activities.pop(); save(); }
+function promptPassword() { return new Promise(r => { const pw=prompt("Enter admin password:"); r(pw===SYSTEM_PASSWORD); }); }
+
+function navigate(page, el=null) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  if(page==='dashboard') renderDashboard();
+  if(page==='tracker') renderTracker();
+  if(page==='analysis') renderAnalysis();
+}
+function openModal(id) { document.getElementById(id).style.display='flex'; }
+function closeModal(id) { document.getElementById(id).style.display='none'; editingReturnId=null; }
+function updateTheme(c) { document.documentElement.style.setProperty('--primary',c); document.getElementById('primary_hex').textContent=c.toUpperCase(); localStorage.setItem('mj_theme_primary',c); }
+function updateAccent(c) { document.documentElement.style.setProperty('--accent',c); document.getElementById('accent_hex').textContent=c.toUpperCase(); localStorage.setItem('mj_theme_accent',c); }
+
+/* ======================== MONTH BAR RENDERER ======================== */
+function renderMonthBar(containerId, pageKey) {
+  const months = getAllMonthsPresent();
+  const active = activeMonthFilter[pageKey];
+  const container = document.getElementById(containerId);
+
+  let html = `<span class="month-filter-label"><i class="fas fa-calendar-alt"></i> Month:</span>`;
+  html += `<button class="month-btn ${active==='all'?'active':''}" onclick="setMonthFilter('${pageKey}','all')">All Time</button>`;
+  months.forEach(m => {
+    html += `<button class="month-btn ${active===m?'active':''}" onclick="setMonthFilter('${pageKey}','${m}')">${getShortMonthLabel(m)}</button>`;
+  });
+  container.innerHTML = html;
+}
+
+function setMonthFilter(pageKey, monthKey) {
+  activeMonthFilter[pageKey] = monthKey;
+  if(pageKey==='dashboard') renderDashboard();
+  if(pageKey==='tracker') renderTracker();
+  if(pageKey==='analysis') renderAnalysis();
+}
+
+/* ======================== MONTH SUMMARY BANNER ======================== */
+function renderMonthBanner(bannerId, monthKey) {
+  const filtered = getFilteredReturns(monthKey);
+  const total = filtered.length;
+  const completed = filtered.filter(r=>r.status==='Completed'||r.status==='Filed').length;
+  const pending = total - completed;
+  const title = monthKey==='all' ? 'ALL TIME OVERVIEW' : getMonthLabel(monthKey).toUpperCase();
+  const sub = monthKey==='all' ? 'Showing all returns across all months' : `Showing returns with Return Date in ${getMonthLabel(monthKey)}`;
+
+  // Entity counts
+  const entities = {};
+  filtered.forEach(r => entities[r.entity] = (entities[r.entity]||0)+1);
+  const topEntity = Object.entries(entities).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById(bannerId).innerHTML = `
+    <div>
+      <div class="month-summary-title"><i class="fas fa-calendar-check" style="margin-right:10px"></i>${title}</div>
+      <div class="month-summary-sub">${sub}</div>
+    </div>
+    <div class="month-summary-stats">
+      <div class="month-stat"><div class="ms-val">${total}</div><div class="ms-label">Total Returns</div></div>
+      <div class="month-stat"><div class="ms-val" style="color:#10b981">${completed}</div><div class="ms-label">Completed</div></div>
+      <div class="month-stat"><div class="ms-val" style="color:#f59e0b">${pending}</div><div class="ms-label">Pending</div></div>
+      <div class="month-stat"><div class="ms-val" style="color:#3b82f6">${topEntity ? topEntity[1] : 0}</div><div class="ms-label">${topEntity ? topEntity[0].split(' - ')[0] : 'N/A'}</div></div>
+    </div>
+  `;
+}
+
+/* ======================== DASHBOARD ======================== */
+function renderDashboard() {
+  const mk = activeMonthFilter.dashboard;
+  renderMonthBar('dashMonthBar', 'dashboard');
+  renderMonthBanner('dashMonthBanner', mk);
+
+  const filtered = getFilteredReturns(mk);
+  const total = filtered.length;
+  const completed = filtered.filter(r=>r.status==='Completed'||r.status==='Filed').length;
+  const newR = filtered.filter(r=>r.status==='New').length;
+  const started = filtered.filter(r=>r.status==='Started').length;
+  const filed = filtered.filter(r=>r.status==='Filed').length;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><span class="label">Total Returns</span><span class="value">${total}</span><span class="trend">${mk==='all'?'All Time':getMonthLabel(mk)}</span></div>
+    <div class="stat-card"><span class="label">New</span><span class="value" style="color:#3b82f6">${newR}</span><span class="trend"><i class="fas fa-circle" style="color:#dbeafe;font-size:8px"></i> Awaiting</span></div>
+    <div class="stat-card"><span class="label">In Progress</span><span class="value" style="color:#f59e0b">${started}</span><span class="trend"><i class="fas fa-circle" style="color:#fef3c7;font-size:8px"></i> Working</span></div>
+    <div class="stat-card"><span class="label">Completed</span><span class="value" style="color:#10b981">${completed}</span><span class="trend trend-up"><i class="fas fa-check"></i> Done</span></div>
+    <div class="stat-card"><span class="label">Filed</span><span class="value" style="color:#7c3aed">${filed}</span><span class="trend"><i class="fas fa-paper-plane" style="color:#ede9fe;font-size:10px"></i> Submitted</span></div>
+  `;
+
+  // Recent Activity
+  document.getElementById('recentActivityList').innerHTML = state.activities.length ? state.activities.slice(0,8).map(a => `
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px; border-bottom:1px solid var(--border)">
+      <span>${a.text}</span><span style="color:var(--text-light);white-space:nowrap;margin-left:10px">${a.time}</span>
+    </div>`).join('') : '<div style="color:var(--text-light); text-align:center; padding:20px">No recent activity</div>';
+
+  renderDashChart(filtered);
+  renderDashMonthTable(filtered);
+}
+
+function renderDashChart(filtered) {
+  const ctx = document.getElementById('dashChart').getContext('2d');
+  if(window.myDashChart) window.myDashChart.destroy();
+  const ec = {};
+  filtered.forEach(r => ec[r.entity] = (ec[r.entity]||0)+1);
+  const colors = ['#0a2540','#10b981','#f59e0b','#3b82f6','#ef4444','#7c3aed','#ec4899'];
+  window.myDashChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: Object.keys(ec), datasets: [{ data: Object.values(ec), backgroundColor: colors.slice(0,Object.keys(ec).length), borderWidth: 0 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom'} } }
+  });
+}
+
+function renderDashMonthTable(filtered) {
+  const sorted = [...filtered].sort((a,b) => (a.returnDate||'').localeCompare(b.returnDate||''));
+  document.getElementById('dashMonthTable').innerHTML = sorted.length ? sorted.map((r,i) => `
+    <tr>
+      <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${r.name||'—'}</td><td>${r.client}</td><td>${r.year}</td>
+      <td>${r.returnDate||'—'}</td><td>${r.entity}</td><td>${r.desc||'—'}</td>
+      <td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:30px">No returns found for this period</td></tr>';
+}
+
+/* ======================== TRACKER ======================== */
+function openReturnModal() {
+  editingReturnId = null;
+  document.getElementById('returnModalTitle').textContent = 'Add New Tax Return';
+  ['r_name','r_client','r_desc'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('r_year').value = '2025';
+  document.getElementById('r_date').value = '';
+  document.getElementById('r_entity').value = '1040 - Individual';
+  document.getElementById('r_status').value = 'New';
+  openModal('returnModal');
+}
+
+function saveReturn() {
+  const name = document.getElementById('r_name').value.trim();
+  const client = document.getElementById('r_client').value.trim();
+  const year = document.getElementById('r_year').value;
+  const returnDate = document.getElementById('r_date').value;
+  const entity = document.getElementById('r_entity').value;
+  const status = document.getElementById('r_status').value;
+  const desc = document.getElementById('r_desc').value.trim();
+  if(!name || !client) return alert('Please enter both Return Name and Client Name');
+  if(!returnDate) return alert('Please enter the Return Date — it determines which month this return belongs to');
+
+  if(editingReturnId) {
+    const idx = state.returns.findIndex(r=>r.id===editingReturnId);
+    if(idx!==-1) { state.returns[idx] = {...state.returns[idx], name, client, year, returnDate, entity, status, desc}; logActivity(`Updated: ${name}`); }
+  } else {
+    state.returns.push({ id: Date.now(), name, client, year, returnDate, entity, status, desc, createdAt: new Date().toISOString() });
+    logActivity(`Added: ${name} → ${getMonthLabel(returnDate.substring(0,7))}`);
+  }
+  save(); editingReturnId=null; closeModal('returnModal');
+  renderTracker(); renderDashboard();
+  showToast(editingReturnId ? 'Return updated' : 'Return saved successfully');
+}
+
+function editReturn(id) {
+  const r = state.returns.find(r=>r.id===id); if(!r) return;
+  editingReturnId = id;
+  document.getElementById('returnModalTitle').textContent = 'Edit Tax Return';
+  document.getElementById('r_name').value = r.name||'';
+  document.getElementById('r_client').value = r.client;
+  document.getElementById('r_year').value = r.year;
+  document.getElementById('r_date').value = r.returnDate||'';
+  document.getElementById('r_entity').value = r.entity;
+  document.getElementById('r_status').value = r.status;
+  document.getElementById('r_desc').value = r.desc||'';
+  openModal('returnModal');
+}
+
+function deleteReturn(id) {
+  if(!confirm('Delete this return?')) return;
+  promptPassword().then(ok => {
+    if(ok) { state.returns=state.returns.filter(r=>r.id!==id); save(); renderTracker(); showToast('Deleted'); }
+    else alert('Wrong password!');
+  });
+}
+
+function renderTracker() {
+  const mk = activeMonthFilter.tracker;
+  renderMonthBar('trackerMonthBar', 'tracker');
+
+  const nameVal = document.getElementById('f_name').value.toLowerCase();
+  const clientVal = document.getElementById('f_client').value.toLowerCase();
+  const yearVal = document.getElementById('f_year').value;
+  const dateFrom = document.getElementById('f_date_from').value;
+  const dateTo = document.getElementById('f_date_to').value;
+  const entityVal = document.getElementById('f_entity').value;
+  const statusVal = document.getElementById('f_status').value;
+  const descVal = document.getElementById('f_desc').value.toLowerCase();
+
+  let filtered = getFilteredReturns(mk);
+
+  filtered = filtered.filter(r => {
+    return (!nameVal || (r.name && r.name.toLowerCase().includes(nameVal))) &&
+           (!clientVal || r.client.toLowerCase().includes(clientVal)) &&
+           (!yearVal || r.year === yearVal) &&
+           (!dateFrom || (r.returnDate && r.returnDate >= dateFrom)) &&
+           (!dateTo || (r.returnDate && r.returnDate <= dateTo)) &&
+           (!entityVal || r.entity === entityVal) &&
+           (!statusVal || r.status === statusVal) &&
+           (!descVal || (r.desc && r.desc.toLowerCase().includes(descVal)));
+  });
+
+  filtered.sort((a,b) => (b.returnDate||'').localeCompare(a.returnDate||''));
+
+  document.getElementById('trackerTable').innerHTML = filtered.length ? filtered.map((r,i) => `
+    <tr>
+      <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${r.name||'—'}</td><td>${r.client}</td><td>${r.year}</td>
+      <td>${r.returnDate||'—'}</td><td>${r.entity}</td><td>${r.desc||'—'}</td>
+      <td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
+      <td><div style="display:flex;gap:12px;justify-content:center">
+        <button onclick="editReturn(${r.id})" style="border:none;background:none;cursor:pointer;color:#3b82f6;font-size:16px" title="Edit"><i class="fas fa-edit"></i></button>
+        <button onclick="deleteReturn(${r.id})" style="border:none;background:none;cursor:pointer;color:#ef4444;font-size:16px" title="Delete"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:30px">No returns found${mk!=='all'?' for '+getMonthLabel(mk):''}</td></tr>`;
+}
+
+function clearTrackerFilters() {
+  ['f_name','f_client','f_year','f_date_from','f_date_to','f_entity','f_status','f_desc'].forEach(id=>document.getElementById(id).value='');
+  activeMonthFilter.tracker = 'all';
+  renderTracker();
+}
+
+/* ======================== ANALYSIS ======================== */
+function renderAnalysis() {
+  const mk = activeMonthFilter.analysis;
+  renderMonthBar('analysisMonthBar', 'analysis');
+  renderMonthBanner('analysisMonthBanner', mk);
+
+  const filtered = getFilteredReturns(mk);
+  const total = filtered.length;
+
+  // By Client
+  const cc = {};
+  filtered.forEach(r => cc[r.client] = (cc[r.client]||0)+1);
+  const sortedClients = Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('anaClientTable').innerHTML = sortedClients.length ? sortedClients.map(([n,c]) => `
+    <tr><td style="font-weight:600">${n}</td><td>${c}</td><td>${((c/total)*100).toFixed(1)}%</td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--text-light)">No data</td></tr>';
+
+  // By Entity
+  const ec = {};
+  filtered.forEach(r => ec[r.entity] = (ec[r.entity]||0)+1);
+  const sortedTypes = Object.entries(ec).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('anaTypeTable').innerHTML = sortedTypes.length ? sortedTypes.map(([t,c]) => `
+    <tr><td style="font-weight:600">${t}</td><td>${c}</td><td>${((c/total)*100).toFixed(1)}%</td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--text-light)">No data</td></tr>';
+
+  // Detail Table
+  const sorted = [...filtered].sort((a,b) => (a.returnDate||'').localeCompare(b.returnDate||''));
+  document.getElementById('anaDetailTable').innerHTML = sorted.length ? sorted.map((r,i) => `
+    <tr>
+      <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${r.name||'—'}</td><td>${r.client}</td><td>${r.year}</td>
+      <td>${r.returnDate||'—'}</td><td>${r.entity}</td><td>${r.desc||'—'}</td>
+      <td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:30px">No data</td></tr>';
+
+  renderAnalysisCharts();
+}
+
+function renderAnalysisCharts() {
+  // Monthly Trend (all time — bar chart showing returns per month)
+  const allMonths = getAllMonthsPresent().reverse(); // chronological order
+  const monthCounts = allMonths.map(m => getFilteredReturns(m).length);
+
+  const ctx1 = document.getElementById('anaTrendChart').getContext('2d');
+  if(window.anaTrendChart) window.anaTrendChart.destroy();
+  window.anaTrendChart = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: allMonths.map(m => getShortMonthLabel(m)),
+      datasets: [{
+        label: 'Returns',
+        data: monthCounts,
+        backgroundColor: '#0a2540',
+        borderRadius: 6,
+        maxBarThickness: 50
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}} }
+  });
+
+  // Entity Pie for selected month
+  const mk = activeMonthFilter.analysis;
+  const filtered = getFilteredReturns(mk);
+  const ec = {};
+  filtered.forEach(r => ec[r.entity] = (ec[r.entity]||0)+1);
+  const colors = ['#0a2540','#10b981','#f59e0b','#3b82f6','#ef4444','#7c3aed','#ec4899'];
+
+  const ctx2 = document.getElementById('anaEntityChart').getContext('2d');
+  if(window.anaEntityChart) window.anaEntityChart.destroy();
+  window.anaEntityChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: { labels: Object.keys(ec), datasets: [{ data: Object.values(ec), backgroundColor: colors.slice(0,Object.keys(ec).length), borderWidth: 0 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
+  });
+}
+
+/* ======================== EXPORT & SYSTEM ======================== */
+function exportData() {
+  const wb = XLSX.utils.book_new();
+
+  // All Returns sheet
+  const allData = state.returns.map((r,i) => ({
+    '#': i+1,
+    'Return Name': r.name,
+    'Client Name': r.client,
+    'Tax Year': r.year,
+    'Return Date': r.returnDate,
+    'Month': r.returnDate ? getMonthLabel(r.returnDate.substring(0,7)) : '',
+    'Entity Type': r.entity,
+    'Description': r.desc,
+    'Status': r.status
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(allData), "All Returns");
+
+  // Per-month sheets
+  const months = getAllMonthsPresent();
+  months.forEach(m => {
+    const mReturns = getFilteredReturns(m).map((r,i) => ({
+      '#': i+1,
+      'Return Name': r.name,
+      'Client': r.client,
+      'Tax Year': r.year,
+      'Return Date': r.returnDate,
+      'Entity': r.entity,
+      'Description': r.desc,
+      'Status': r.status
+    }));
+    if(mReturns.length) {
+      const sheetName = getShortMonthLabel(m).replace(/[\\\/\?\*\[\]]/g,'');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mReturns), sheetName);
+    }
+  });
+
+  XLSX.writeFile(wb, `MJ_Tracker_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+  showToast('Exported to Excel with monthly sheets');
+}
+
+function backupSystem() {
+  const blob = new Blob([JSON.stringify(state)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mj_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  showToast('Backup downloaded');
+}
+
+function restoreSystem(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(data.returns) { state = data; if(!state.activities) state.activities=[]; save(); location.reload(); }
+      else alert('Invalid backup file');
+    } catch(err) { alert('Error parsing file'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if(!confirm('Reset entire system? Cannot be undone.')) return;
+  promptPassword().then(ok => {
+    if(ok) { localStorage.clear(); state={returns:[],activities:[]}; save(); location.reload(); }
+    else alert('Wrong password!');
+  });
+}
+
+function handleSearch(val) {
+  if(!val) return;
+  navigate('tracker');
+  document.getElementById('f_name').value = val;
+  activeMonthFilter.tracker = 'all';
+  renderTracker();
+}
+
+/* ======================== SEED DATA ======================== */
+function seedData() {
+  const data = [
+    {name:'3180 SW 22 St PH205', client:'Adriana', year:'2025', returnDate:'2026-06-01', entity:'1040 - Individual', desc:'Prepare Schedule E WP', status:'Completed'},
+    {name:'8129 Dadeland walk', client:'Adriana', year:'2025', returnDate:'2026-06-01', entity:'1040 - Individual', desc:'Prepare Schedule E WP', status:'Completed'},
+    {name:'124 Village bound #16', client:'Adriana', year:'2025', returnDate:'2026-06-05', entity:'1040 - Individual', desc:'Prepare Schedule E WP', status:'Completed'},
+    {name:'124 Village bound #15', client:'Adriana', year:'2025', returnDate:'2026-06-03', entity:'1040 - Individual', desc:'Prepare Schedule E Work paper', status:'Completed'},
+    {name:'Paramount Planning LLC', client:'Nancy', year:'2025', returnDate:'2026-06-03', entity:'1120S - S Corp', desc:'Prepare Tax WP as well as Tax return', status:'Completed'},
+    {name:'DWB Tax and Insurance Services LLC', client:'Nancy', year:'2025', returnDate:'2026-06-04', entity:'1120S - S Corp', desc:'Prepare Tax WP as well as Tax return', status:'Completed'},
+    {name:'Neon Labs 1065', client:'Nancy', year:'2025', returnDate:'2026-06-08', entity:'1065 - Partnership', desc:'Prepare Tax WP as well as Tax return', status:'Completed'},
+    {name:'MCCI', client:'Alpesh bhai', year:'2025', returnDate:'2026-06-08', entity:'Other', desc:'Practice Work Paper', status:'Completed'},
+    {name:'Rio Gaming Inc', client:'Nancy', year:'2025', returnDate:'2026-06-09', entity:'1120 - C Corp', desc:'Prepare Tax WP as well as Tax return', status:'Completed'},
+    {name:'EAJA investments', client:'Adriana', year:'2025', returnDate:'2026-06-10', entity:'1065 - Partnership', desc:'Prepare WP', status:'Completed'},
+    {name:'Physician Consortium Services LLC', client:'Adriana', year:'2025', returnDate:'2026-06-10', entity:'1065 - Partnership', desc:'Prepare WP', status:'Completed'},
+    {name:'JV-CAM, LLC', client:'Adriana', year:'2025', returnDate:'2026-06-10', entity:'1065 - Partnership', desc:'Prepare WP', status:'Completed'},
+    {name:'Sal Health Group', client:'Adriana', year:'2025', returnDate:'2026-06-12', entity:'1120S - S Corp', desc:'Working On Tax TB', status:'Completed'},
+    {name:'BP Autobody Supply', client:'Nancy', year:'2025', returnDate:'2026-06-24', entity:'1120S - S Corp', desc:'Prepare Tax TB', status:'Completed'},
+    {name:'Urmila Kumar', client:'Raj patel', year:'2025', returnDate:'2026-07-01', entity:'1040 - Individual', desc:'Prepare tax return', status:'Completed'},
+    {name:'Shivani Bhagwan', client:'Raj patel', year:'2025', returnDate:'2026-07-02', entity:'1040 - Individual', desc:'Prepare tax return', status:'Completed'},
+    {name:'Venture Lending', client:'Adriana', year:'2025', returnDate:'2026-07-03', entity:'1065 - Partnership', desc:'Prepare Tax TB', status:'Completed'},
+  ];
+  data.forEach(item => state.returns.push({ id: Date.now() + Math.random(), ...item, createdAt: new Date().toISOString() }));
+  save();
+}
+
+/* ======================== INIT ======================== */
+function initApp() {
+  if(state.returns.length === 0) seedData();
+  const sp = localStorage.getItem('mj_theme_primary');
+  const sa = localStorage.getItem('mj_theme_accent');
+  if(sp) { updateTheme(sp); document.getElementById('set_primary').value=sp; }
+  if(sa) { updateAccent(sa); document.getElementById('set_accent').value=sa; }
+  document.getElementById('currentDate').textContent = new Date().toDateString();
+  renderDashboard();
+}
+
+window.onload = checkSession;
+</script>
+</body>
+</html>
